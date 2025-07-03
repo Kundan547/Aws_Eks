@@ -1,0 +1,108 @@
+Prerequisites:
+
+aws cli
+kubectl
+Eksctl
+Required IAM Permissions to Instance
+
+
+
+
+1️⃣ Launch a Linux EC2 Instance
+Type: t2.micro (for control machine; not the EKS worker nodes).
+
+OS: Ubuntu preferred.
+
+Use SSH or tools like PuTTY, Mobaxterm, or Windows CMD to connect.
+
+# Example SSH from Windows CMD
+ssh -i "your-key.pem" ubuntu@<EC2-Public-IP>
+
+2️⃣ Install Prerequisites
+
+sudo apt update && sudo apt install unzip curl -y
+
+
+3️⃣ Install AWS CLI
+
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+aws --version
+
+4️⃣ Install kubectl (Kubernetes CLI)
+
+curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.28.2/2023-10-17/bin/linux/amd64/kubectl
+curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.28.2/2023-10-17/bin/linux/amd64/kubectl.sha256
+sha256sum -c kubectl.sha256
+chmod +x ./kubectl
+mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl
+export PATH=$HOME/bin:$PATH
+kubectl version --client
+
+
+5️⃣ Install eksctl
+
+ARCH=amd64
+PLATFORM=$(uname -s)_$ARCH
+
+curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
+curl -sL "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
+
+tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
+sudo mv /tmp/eksctl /usr/local/bin
+eksctl version
+
+
+6️⃣ Create IAM Role and Attach to EC2
+Go to IAM > Roles > Create Role.
+
+Select EC2 as the trusted entity.
+
+Attach the following policies:
+
+AdministratorAccess
+
+AmazonEC2FullAccess
+
+IAMFullAccess
+
+AWSCloudFormationFullAccess
+
+Name the role eks_role.
+
+Attach it to the EC2 instance:
+
+Select instance > Actions > Security > Modify IAM Role.
+
+7️⃣ Create EKS Cluster
+
+eksctl create cluster --name devops-voyager --region ap-south-1 --node-type t2.micro
+Takes approx. 10 minutes to create cluster and worker nodes.
+
+8️⃣ Verify Cluster
+
+eksctl get cluster --region ap-south-1
+eksctl get nodegroup --cluster devops-voyager --region ap-south-1
+kubectl get nodes
+
+
+9️⃣ Deploy & Expose Application
+
+kubectl create deployment web-app --image=nginx --port=80 --replicas=2
+kubectl expose deployment web-app --port=80 --type=LoadBalancer
+kubectl get services
+Copy the EXTERNAL-IP from the output and open in a browser to access nginx.
+
+🔁 Clean Up Resources
+
+kubectl delete service web-app
+kubectl delete deployment web-app
+kubectl get all
+eksctl delete cluster devops-voyager --region ap-south-1
+📝 Notes
+Ensure region matches your preferred AWS region.
+
+EKS charges apply; t2.micro nodes are not in free-tier.
+
+Always validate IAM permissions before running eksctl.
