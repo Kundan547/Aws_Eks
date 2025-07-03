@@ -1,0 +1,176 @@
+📘 Kubectl Cheat Sheet – Kubernetes Command Reference
+Your go-to reference for managing Kubernetes clusters efficiently using kubectl.
+
+🚀 Quick Kubectl Installation Guide
+
+# 🐧 Linux (Generic)
+🐧 Ubuntu / Debian
+
+sudo apt-get update && sudo apt-get install -y apt-transport-https
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+sudo apt-get update
+sudo apt-get install -y kubectl
+
+# 🐧 Ubuntu / Debian (Alternative)
+🧱 CentOS / Red Hat
+
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+EOF
+
+yum install -y kubectl
+📌 Kubectl Command Structure
+
+kubectl [command] [TYPE] [NAME] [flags]
+command: What you want to do (get, create, describe, delete, etc.)
+
+TYPE: Kubernetes resource type (pods, services, deployments, etc.)
+
+NAME: Name of the resource (optional)
+
+flags: Optional arguments (e.g., --namespace, -o json)
+
+🔧 Essential Kubectl Commands
+📦 Create Resources
+
+kubectl create -f pod.yaml              # From file
+kubectl create deployment nginx --image=nginx
+kubectl create -f ./dir/                # All YAMLs in a directory
+
+📋 Get Resources
+
+kubectl get pods                        # All pods
+kubectl get pods -o wide                # With node info
+kubectl get pod <name> -o json
+kubectl get all                         # All resource types
+kubectl get pods --all-namespaces
+
+🔍 Describe Resources
+
+kubectl describe pod <name>
+kubectl describe pods
+kubectl describe pods -l app=nginx
+
+❌ Delete Resources
+
+kubectl delete pod <name>
+kubectl delete pod,service nginx frontend
+kubectl delete pods -l name=myapp
+kubectl delete pod <name> --grace-period=0 --force
+kubectl delete pods --all
+
+⚙️ Deployment Management & Scaling
+
+kubectl create deployment webapp --image=nginx
+kubectl scale deployment webapp --replicas=5
+kubectl set image deployment/webapp nginx=nginx:1.21
+kubectl rollout undo deployment/webapp
+
+📈 Autoscaling
+
+kubectl autoscale deployment webapp --min=2 --max=10 --cpu-percent=80
+kubectl get hpa
+
+🌐 Services & Networking
+
+kubectl expose deployment nginx --port=80 --target-port=8000
+kubectl expose deployment webapp --type=NodePort --port=80
+kubectl expose deployment webapp --type=LoadBalancer --port=80
+
+🧪 Debugging & Logs
+
+kubectl logs <pod-name>
+kubectl logs -f <pod-name>
+kubectl logs <pod-name> --previous
+kubectl exec -it <pod-name> -- /bin/bash
+kubectl port-forward <pod-name> 8080:80
+
+📊 Monitoring & Health Checks
+
+kubectl cluster-info
+kubectl get nodes
+kubectl top nodes
+kubectl top pods
+
+🔄 Configuration & Contexts
+
+kubectl config current-context
+kubectl config get-contexts
+kubectl config use-context <context>
+kubectl config view
+
+🧠 Resource Management
+
+kubectl set resources deployment nginx --limits=cpu=200m,memory=512Mi
+kubectl set resources deployment nginx --requests=cpu=100m,memory=256Mi
+kubectl set env deployment/nginx API_URL=https://api.example.com
+
+📂 Batch Operations
+
+kubectl apply -f ./configs/
+kubectl delete -f ./configs/
+kubectl patch deployment nginx -p '{"spec":{"replicas":3}}'
+
+🔐 Security & Permissions
+RBAC
+
+kubectl auth can-i create pods
+kubectl auth can-i create pods --as=user@example.com
+kubectl get serviceaccounts
+
+Secrets
+
+kubectl create secret generic mysecret --from-literal=username=admin
+kubectl create secret generic mysecret --from-file=ssh-key=/path/to/key
+kubectl get secrets
+
+🏷️ Labels & Selectors
+
+kubectl label pods webapp version=v1.0
+kubectl label pods webapp version=v2.0 --overwrite
+kubectl label pods webapp version-
+kubectl get pods -l version=v1.0
+
+🧭 Working with Namespaces
+
+kubectl create namespace development
+kubectl get pods -n development
+kubectl config set-context --current --namespace=development
+
+💡 Productivity Tips
+Shell Completion
+
+source <(kubectl completion bash)
+echo 'source <(kubectl completion bash)' >>~/.bashrc
+
+Aliases
+
+alias k=kubectl
+alias kgp='kubectl get pods'
+alias kgs='kubectl get services'
+alias kgd='kubectl get deployments'
+
+❗ Common Error Fixes
+Error	Solution
+Unable to connect	Check kubeconfig and context
+Forbidden	Check IAM roles / RBAC
+ImagePullBackOff	Check image registry access
+CrashLoopBackOff	Inspect pod logs
+Pending	Node availability or resource limits
+
+✅ Most Used Commands – Quick Reference
+
+kubectl get pods
+kubectl describe pod <name>
+kubectl logs <pod-name>
+kubectl exec -it <pod-name> -- bash
+kubectl apply -f <file>
+kubectl delete pod <name>
+🔎 Always verify your context with kubectl config current-context before making production changes.
